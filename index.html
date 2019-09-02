@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>todoistism</title>
+        <link rel="stylesheet" href="./style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.js"></script>
+        <!-- <script src="./app.js"></script> -->
+        <script>
+            jQuery(document).ready(function () {
+                var mentionsSample = [{
+                    id: 123,
+                    title: '部長',
+                    colors: {
+                        bg_color: "#008080",
+                        text_color: "#ffffff",
+                    }
+                }, {
+                    id: 246,
+                    title: '課長',
+                    colors: {
+                        bg_color: "#000080",
+                        text_color: "#ffffff",
+                    }
+                }, {
+                    id: 369,
+                    title: '一般',
+                    colors: {
+                        bg_color: "#008000",
+                        text_color: "#ffffff",
+                    }
+                }]
+
+                var dataSource = {
+                    endDate: null,
+                    mentions: [],
+                    tags: [],
+                    content: "",
+                };
+
+                var $smtp = $('#js-uptri--smartphone');
+                var $inputField = $('#js-uptri--todoistism__input');
+                var $sendBtn = $('#js-uptri--todoistism__send');
+                var $addBtn = $('#js-uptri--todoistism-add');
+                var $ovarlay = $('#js-uptri--todoistism-overlay');
+                var $mentionsSelect = $('#js-uptri--todoistism__select-mentions');
+
+                var oldContent = $inputField.html();
+                /**
+                 * set `contentEditable=plaintext-only` at #js-uptri--todoistism
+                 * plaintext-only
+                 */
+                $inputField.attr('contentEditable', "plaintext-only");
+                $inputField.on('blur keyup paste copy cut mouseup', function (event) {
+                    var newContent = $inputField.html();
+                    if (oldContent !== newContent) {
+                        if (event.key === 'Backspace' || event.key === 'Delete') {
+                            var selection = window.getSelection();
+                            var $target = $(selection.anchorNode.parentElement);
+                            // console.log($target);
+                            if ($target.hasClass('js-uptri--todoistism__badge')) {
+                                if ($target.hasClass('js-uptri--todoistism__mention')) {
+                                    var mentionId = $target.attr('mention_id');
+                                    dataSource.mentions = dataSource.mentions.filter(function (val) {
+                                        return val != mentionId;
+                                    });
+                                }
+                                $target.remove();
+                            }
+                        }
+                        if (event.key !== 'Enter') {
+                            $inputField.trigger('change');
+                        }
+                        oldContent = newContent;
+                    }
+                });
+
+                $inputField.on('change', function () {
+                    var oldDateContent = nbspParser($inputField.html());
+                    var newDateContent = endTargetParser(oldDateContent);
+                    var newDateContent = mentionsParser(newDateContent);
+                    if (oldDateContent != newDateContent) {
+                        var cursorSelection = window.getSelection();
+                        $inputField.html(newDateContent);
+                        var newCursorPosition = $inputField.text().length;
+                        cursorSelection.setPosition($inputField[0], document.createRange().END_TO_END);
+                    }
+                    if ($inputField.children('.uptri--todoistism__date').length === 0) {
+                        dataSource.endDate = null;
+                    }
+                })
+
+                $addBtn.on('click', function () {
+                    if (!$smtp.hasClass('uptri--todoistism--edit')) {
+                        $smtp.addClass('uptri--todoistism--edit');
+                    }
+                });
+
+                $ovarlay.on('click', function () {
+                    if ($smtp.hasClass('uptri--todoistism--edit')) {
+                        $smtp.removeClass('uptri--todoistism--edit');
+                    }
+                });
+
+                $sendBtn.on('click', function () {
+                    var fieldHTML = $inputField.html();
+                    dataSource.content = fieldHTML.replace(
+                        /<span class="js\-uptri\-\-todoistism__badge.+">.*<\/span>\s{0,}/g, "")
+                    $inputField.html('');
+                    $('#js-uptri--todoistism__result').text(JSON.stringify(dataSource));
+                    if ($smtp.hasClass('uptri--todoistism--edit')) {
+                        $smtp.removeClass('uptri--todoistism--edit');
+                    }
+                })
+
+                var mentionReplaceFrom = null;
+                $(document).on('click', '.js-uptri--mentions-item', function () {
+                    var mentionId = $(this).attr('mention_id');
+                    var content = $inputField.html();
+                    var mentionObj = mentionsSample.filter(function (val) {
+                        if (val.id == mentionId) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    })[0];
+                    if (dataSource.mentions.indexOf(parseInt(mentionId)) == -1) {
+                        dataSource.mentions.push(parseInt(mentionId));
+                        $inputField.html(content.replace(mentionReplaceFrom,
+                            '<span mention_id="' + mentionObj.id +
+                            '" class="js-uptri--todoistism__badge js-uptri--todoistism__mention uptri--todoistism__mention" style="color:' +
+                            mentionObj.colors.text_color + ';background-color:' + mentionObj
+                            .colors
+                            .bg_color + ';">' +
+                            mentionObj.title + '</span> '));
+                    }
+                    $mentionsSelect.children().remove();
+                });
+
+                var nbspParser = (content) => {
+                    return content.replace(/&nbsp;/g, " ");
+                }
+
+                var endTargetParser = (content) => {
+                    var matchResult = content.match(
+                        /(?:^| |　)((?:(?:([0-9]{4})年)?(?:([0-9]{1,2})月)?(?:(?:([0-9]{1,2})日)|(末))|(?:([0-9]{4}?)(?:\.|\/|\-|_|／|ー))?(?:([0-9]{1,2})(?:\.|\/|\-|_|／|ー))([0-9]{1,2}))|(昨日|今日|本日|明日|明後日|あさって|今月末|年末|年度末))(?:まで)?(?: |　)/
+                    );
+                    if (matchResult && !dataSource.endDate) {
+
+                        var now = moment();
+                        var targetDay;
+
+                        console.log([
+                            matchResult[1], // ヒット
+                            matchResult[2], // [日本語表記]年
+                            matchResult[3], // [日本語表記]月
+                            matchResult[4], // [日本語表記]日
+                            matchResult[5], // 末
+                            matchResult[6], // [英語表記]年
+                            matchResult[7], // [英語表記]月
+                            matchResult[8], // [英語表記]日
+                            matchResult[9], // 今日,明日 ...
+                        ]);
+                        if (matchResult[9]) { // 今日,明日 ...
+                            switch (matchResult[9]) {
+                                case '昨日':
+                                    targetDay = now.add(-1, 'd');
+                                    break;
+                                case '今日':
+                                case '本日':
+                                    targetDay = now;
+                                    break;
+                                case '明日':
+                                    targetDay = now.add(1, 'd');
+                                    break;
+                                case '明後日':
+                                case 'あさって':
+                                    targetDay = now.add(2, 'd');
+                                    break;
+                                case '今月末':
+                                    targetDay = now.endOf('month');
+                                    break;
+                                case '年末':
+                                    targetDay = now.endOf('year');
+                                    break;
+                                case '年度末':
+                                    if (now.month() <= 2) {
+                                        targetDay = now.month(2).endOf('month');
+                                    } else {
+                                        targetDay = now.add(1, 'year').month(2).endOf('month');
+                                    }
+                                    break;
+                            }
+                        } else { // 日本語表記
+                            var y = matchResult[2] || matchResult[6];
+                            var m = matchResult[3] || matchResult[7];
+                            var d = matchResult[4] || matchResult[8];
+                            targetDay = moment();
+                            if (y) {
+                                targetDay = targetDay.year(y);
+                            }
+                            if (m) {
+                                targetDay = targetDay.month(m - 1);
+                            }
+                            if (d) {
+                                targetDay = targetDay.date(d);
+                            }
+                            if (matchResult[5]) { // endof
+                                targetDay = targetDay.endOf(m - 1 ? 'month' : 'year');
+                            }
+                        }
+
+                        content = content.replace(matchResult[1],
+                            '<span class="js-uptri--todoistism__badge js-uptri--todoistism__date uptri--todoistism__date">' +
+                            targetDay.format(
+                                'YYYY年MM月DD日') + '</span> ');
+                        console.log('target', targetDay.format('YYYY-MM-DD'));
+                        dataSource.endDate = targetDay;
+                    }
+                    console.log('endTargetParser:', content);
+
+                    return content;
+                }
+
+                var mentionsParser = (content) => {
+                    var matchResult = content.match(/(?:^| |　)((?:@|＠)(.+))(?: |　)/);
+                    if (matchResult) {
+                        mentionReplaceFrom = matchResult[1];
+                        var subj = matchResult[2];
+                        var matched = [];
+                        $mentionsSelect.children().remove();
+                        for (const mention of mentionsSample) {
+                            var re = new RegExp(subj);
+                            console.log(re);
+                            if (re.test(mention.title)) {
+                                matched.push(mention);
+                                $mentionsSelect.append($('<button>').addClass(
+                                    'js-uptri--mentions-item item').attr(
+                                    'mention_id', mention.id).prepend($('<i>').addClass(
+                                    'item__circle fas fa-at').css('color', mention
+                                    .colors
+                                    .bg_color)).append(mention.title));
+                            }
+                        }
+                    }
+                    console.log('mentionsParser:', content);
+
+                    return content;
+                }
+            });
+        </script>
+    </head>
+    <body class="window">
+        <div id="js-uptri--smartphone" class="smartphone">
+            <section class="content">
+                <pre id="js-uptri--todoistism__result" class="content__result"></pre>
+            </section>
+
+            <section id="js-uptri--todoistism" class="uptri--todoistism">
+                <div id="js-uptri--todoistism__select-mentions" class="uptri--todoistism__select-mentions"></div>
+                <div id="js-uptri--todoistism__input" class="uptri--todoistism__input"></div>
+                <button id="js-uptri--todoistism__send" class="uptri--todoistism__send">▶</button>
+            </section>
+            <div id="js-uptri--todoistism-add" class="uptri--todoistism-add"><span class="plus">＋</span></div>
+            <div id="js-uptri--todoistism-overlay" class="uptri--todoistism-overlay"></div>
+        </div>
+    </body>
+</html>

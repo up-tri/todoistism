@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap');
+@import url('https://fonts.googleapis.com/css?family=M+PLUS+1p:300,500&display=swap&subset=japanese');
+
+@import url('https://use.fontawesome.com/releases/v5.10.2/css/all.css');
+
+* {
+    box-sizing: border-box;
+    overscroll-behavior: none;
+    font-family: 'M PLUS 1p', sans-serif;
+    font-weight: 300;
+    transition: .2s;
+}
+
+html,
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    font-size: 16px;
+}
+
+.window {
+    position: relative;
+    background-color: #efefef;
+}
+
+.smartphone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
+    /* iPhone 6/7/8 */
+    width: 375px;
+    height: 667px;
+    margin: auto;
+    border: 1px solid #aaa;
+    background-color: #fff;
+    box-shadow: 2px 2px 4px 0px #a1a1a1;
+}
+
+.content {
+    padding: 5px;
+    height: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.content__result {
+    display: block;
+    margin: 10px 0;
+    border: 1px solid #aaa;
+    padding: 3px;
+    font-size: 0.8rem;
+    font-family: 'Source Code Pro', monospace;
+    color: #4e5665;
+}
+
+.uptri--todoistism {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #fff;
+    opacity: 0;
+    z-index: -1;
+
+    font-size: 0;
+    /* line-height: 50px;
+    letter-spacing: 0; */
+}
+
+.uptri--todoistism__input {
+    display: inline-block;
+    width: calc(100% - 60px);
+    height: 100%;
+
+    padding: 6px 3px;
+    font-size: 0.9rem;
+    color: #4e5665;
+    letter-spacing: 0.1em;
+
+    overflow-y: scroll;
+}
+
+.uptri--todoistism__input:focus {
+    outline: none;
+}
+
+.uptri--todoistism__send {
+    vertical-align: top;
+    display: inline-block;
+    width: 60px;
+    height: 100%;
+    margin: 0;
+    border: none;
+    padding: 0;
+    background-color: #da3d3d;
+    font-size: 20px;
+    color: #fff;
+}
+
+.uptri--todoistism__send:focus {
+    outline: none;
+}
+
+.uptri--todoistism:focus {
+    outline: none;
+}
+
+.uptri--todoistism-add {
+    display: block;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50px;
+    box-shadow: 2px 2px 4px 0px #a1a1a1;
+    background-color: #da3d3d;
+    text-align: center;
+    cursor: pointer;
+}
+
+.uptri--todoistism-add>.plus {
+    display: inline;
+    color: #fff;
+    font-size: 25px;
+    line-height: 50px;
+    font-weight: 500;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.uptri--todoistism-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: -1;
+}
+
+.uptri--todoistism__select-mentions {
+    display: block;
+    margin: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    list-style: none;
+}
+
+.uptri--todoistism__select-mentions>.item {
+    display: block;
+    width: 100%;
+    border: none;
+    padding: 10px 5px;
+    background-color: transparent;
+    color: #4e5665;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    background: linear-gradient(to right, white 50%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: right bottom;
+    transition: .2s;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.uptri--todoistism__select-mentions>.item:nth-of-type(1) {
+    border-top: 1px solid #4e5665;
+}
+
+.uptri--todoistism__select-mentions>.item:nth-last-of-type(1) {
+    border-bottom: 1px solid #4e5665;
+}
+
+.uptri--todoistism__select-mentions>.item:hover,
+.uptri--todoistism__select-mentions>.item:focus {
+    background-position: left bottom;
+    outline: none;
+}
+
+.uptri--todoistism__select-mentions>.item>.item__circle {
+    padding: 0 3px;
+    font-size: 0.9rem;
+}
+
+.uptri--todoistism--edit .uptri--todoistism {
+    opacity: 1;
+    z-index: 1200;
+}
+
+.uptri--todoistism--edit .uptri--todoistism-add {
+    width: 0;
+    height: 0;
+    transform: translateX(-25px) translateY(-25px);
+}
+
+.uptri--todoistism--edit .uptri--todoistism-add>.plus {
+    display: none;
+}
+
+.uptri--todoistism--edit .uptri--todoistism-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.uptri--todoistism--edit .uptri--todoistism__select-mentions {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+}
+
+.uptri--todoistism__date {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 0 3px;
+    color: #fff;
+    background-color: #4e5665;
+}
+
+.uptri--todoistism__date:before {
+    display: inline-block;
+    content: '\f073';
+    font-family: 'Font Awesome 5 Free';
+    padding: 0 3px;
+}
+
+.uptri--todoistism__mention {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 0 3px;
+    color: #fff;
+    background-color: #4e5665;
+}
+
+.uptri--todoistism__mention:before {
+    display: inline-block;
+    content: '＠';
+    font-family: 'Font Awesome 5 Free';
+    padding: 0 1px;
+}
